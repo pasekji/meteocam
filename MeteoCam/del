@@ -1,0 +1,21 @@
+#!/bin/bash
+pathToPictures=$1									# Zde prosím nastavte plnou cestu do adresářové struktury Pictures.
+frequency=$2										# Frekvence cyklu
+for (( ; ; ))										# Nekončící cyklus 
+do
+find $pathToPictures/Pictures-hist2 -mmin +5 -type f -delete	# Smažou se snímky v Pictures-hist2 starší 5 minut. 
+echo "Hist2 has been deleted"
+find $pathToPictures/Pictures-info -mmin +5 -type f -delete		# Smažou se snímky v Pictures-info starší 5 minut.
+echo "Pictures-info has been deleted"
+find $pathToPictures/Pictures-anim/Pictures-anim-final/Pictures-anim1h -mmin +120 -type f -delete	# Smažou se animace v Pictures-anim1h starší 2 hodin.
+echo "1h has been deleted"
+find $pathToPictures/Pictures-anim/Pictures-anim-final/Pictures-anim3h -mmin +360 -type f -delete	# Smažou se animace v Pictures-anim3h starší 6 hodin.
+echo "3h has been deleted"
+find $pathToPictures/Pictures-anim/Pictures-anim-final/Pictures-anim12h -mtime +2 -type f -delete	# Smažou se animace v Pictures-anim12h starší 2 dnů.
+echo "12h has been deleted"
+find $pathToPictures/Pictures-anim/Pictures-anim-final/Pictures-anim1d -mtime +3 -type f -delete	# Smažou se animace v Pictures-anim1d starší 3 dnů.
+echo "1d has been deleted"
+find $pathToPictures/Pictures-anim/Pictures-anim-final/Pictures-anim1w -mtime +14 -type f -delete	# Smažou se animace v Pictures-anim1w starší 2 týdnů.
+echo "1w has been deleted"
+sleep $frequency											
+done

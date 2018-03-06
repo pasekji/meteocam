@@ -1,0 +1,26 @@
+#!/bin/bash
+
+id=$1												# První argument = id v databázi 
+DT=$(date '+%Y%m%d%H%M%S') 							# Tato proměnná vyjadřuje nynější datum a čas.
+FLATTIME=$(date "+%H%M")							# Tato proměnná vyjadřuje nynější čas v hodině a minutách.
+echo "Average temperature processing time is: $DT " 
+
+# server login
+login="user@server.com"								# Zde vyplňte prosím přihlašovací jeméno a doménu ve fromátu username@doména.cz .  
+protocol=22											# Zde vyplňte ID síťového protokolu. U SSH je výchozí ID 22.
+
+# Následující funkce zajišťuje přístup na server pomocí protokolu SSH. Za parametrem -p v uvozovkách prosím vyplňte své heslo pro přístup na SSH. Po úspěšném přístupu vyvolá příkazy nacházející se v EOF. 
+
+if [ $FLATTIME -ge 2350 ] && [ $FLATTIME -le 2359 ]; then	# Tato podmínka testuje, zdali je čas vhodný pro nahrání dat.
+  ssh host <<EOF 
+		  mysql --host=host --user=user --password=password database -e "SET @avgTemp = (SELECT AVG(temperature_C) AS avgTemp FROM (SELECT temperature_C FROM stats ORDER BY timestamp DESC LIMIT 144) a); SET @avgHumid = (SELECT AVG(humidity) AS avgHumid FROM (SELECT humidity FROM stats ORDER BY timestamp DESC LIMIT 144) a); SET @oldID = (SELECT MAX(id) FROM avg_temp ORDER BY timestamp); SET @newID = @oldID + 1; INSERT INTO avg_temp (id, avg_temp, avg_humid) values(@newID, @avgTemp, @avgHumid);"
+EOF
+
+# V příkazu mysql si vyplňte přihlašovací údaje do databáze a nakonfigurujte si pole, do kterých se budou data ukládat.
+  echo "Values has been successfully saved into the database!"
+  
+else
+
+  echo "Upload was not allowed!"
+  
+fi

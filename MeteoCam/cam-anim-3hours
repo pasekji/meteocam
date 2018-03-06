@@ -1,0 +1,70 @@
+#!/bin/bash
+
+# FTP login attributes and paths 		
+currentFolder=$1											# Zde prosím nastavte plnou cestu, která vede do nynějšího umístění MeteoCam scriptů.
+pathToPictures=$2											# Zde prosím nastavte plnou cestu do adresářové struktury Pictures.
+userName=$3													# Zde si prosím nastavte uživatelské jméno pro přístup k FTP serveru.
+password=$4													# Zde si prosím nastavte heslo pro přístup k uživatelskému účtu na FTP serveru.
+domain=$5													# Zde prosím nastavte název vaší domény např. google.com .
+destinationFolder=$6										# Zde prosím určete, do jakého adresáře se na zvoleném FTP serveru budou ukládat nově pořízené animace. 
+targetDirectory=$7											# Zde prosím nastavte ID cílové složky na Google drive. 
+directory=($pathToPictures/Pictures-anim/Pictures-anim3h/)	# Adresář, ve kterém jsou ukládány snímky pro tvorbu tříhodinové animace.
+
+# Nekončící cyklus 
+for (( ; ; ))
+do
+	copy=16														# Počáteční hodnota přemisťovacího cyklu
+	firstAddValue=120											# Hodnota, které je přičítána po prvním průchodu přemisťovacího cyklu.
+	secondAddValue=248											# Hodnota, které je přičítána po druhém průchodu přemisťovacího cyklu.
+	thirdAddValue=376											# Hodnota, které je přičítána po třetím průchodu přemisťovacího cyklu.
+	frequency=300												# Počet sekund, po kterých bude zahájen proces o tvorbu animace.  
+	echo "Current animation level directory is: $directory" 
+
+	if [ $(ls -A "$directory" | wc -l) -ge 60 ]; then			# Podmínka, která se ptá, zdali adresář obsahuje dostatečný počet snímků pro tvorbu animace.
+		
+		DT=$(date '+%Y%m%d%H%M%S')								# Tato proměnná vyjadřuje nynější datum a čas.
+		convert -morph 1 -delay 8 $pathToPictures/Pictures-anim/Pictures-anim3h/{12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,42,44,46,48,50,52,54,56,58,60,62,64,66,68,70,72,74,76,78,80,82,84,86,88,90,92,94,96,98,100,102,104,106,108,110,112,114,116,118,120,122,124,126,128,130}.jpg $pathToPictures/Pictures-anim/Pictures-anim-final/Pictures-anim3h/$DT.gif	# Tímto příkazem se již generuje samotná animace. Parametrem -morph zvolíme morfologickou image porccessing metodu, která zajistí méně nedokonalostí oproti ostatním metodám. Parametr -delay určuje, po jaké době má být zobrazen další snímek(ms). Dále je zde definováno rozhraní snímků, které budou jako vstup pro tvorbu. Poslední atribut vyjadřuje již cestu k výstupnímu souboru.
+		echo "New animation: $DT.gif is ready!"
+		cd $pathToPictures/Pictures-anim/Pictures-anim-final/Pictures-anim3h
+		$currentFolder/cam-anim-up-3hours "$DT" $pathToPictures $targetDirectory $userName $password $domain $destinationFolder & 			# Spuštění subprocesu pro nahrání animace na webhosting a do Gdrive archivu.
+		
+		# Zde můžete v případě potřeby přesouvat již hotové animace do archivu, pro povolení této funkce prosím odstraňte křížky v následujících 2 řádcích.  
+		# mv $pathToPictures/Pictures-anim/Pictures-anim-final/Pictures-anim3h/"$DT.gif" $pathToPictures/Pictures-anim/Pictures-anim-old/Pictures-anim3h/
+		# echo "File $DT.gif has been moved to the archieve!"
+
+	# Následující cyklus přesouvá snímky z adresáře s již vytvořenou animací. Z tříhodinové do dvanáctihodinové struktury je přesouván každý osmý snímek postupně ve 4 jednotlivých vlnách.	
+	while [ $copy -lt 130 ];
+		do
+		  if [ -e $pathToPictures/Pictures-anim/Pictures-anim12h/"$copy.jpg" ]; then				# Zde se ptáme, zdali již byla někdy provedena první vlna přesunu. Pokud ano, přičítá se k číselné hodnotě snímku další číselná hodnota. Takto předcházíme duplikaci názvů snímků v adresáři.
+			let firstDuplicate=$(($copy + $firstAddValue))
+		  if [ -e $pathToPictures/Pictures-anim/Pictures-anim12h/"$firstDuplicate.jpg" ]; then		# Zde se ptáme, zdali již byla někdy provedena druhá vlna přesunu. Pokud ano, přičítá se k číselné hodnotě snímku další číselná hodnota. Takto předcházíme duplikaci názvů snímků v adresáři.
+			let secondDuplicate=$(($copy + $secondAddValue))
+		  if [ -e $pathToPictures/Pictures-anim/Pictures-anim12h/"$secondDuplicate.jpg" ]; then		# Zde se ptáme, zdali již byla někdy provedena třetí vlna přesunu. Pokud ano, přičítá se k číselné hodnotě snímku další číselná hodnota. Takto předcházíme duplikaci názvů snímků v adresáři.
+			let thirdDuplicate=$(($copy + $thirdAddValue))
+			mv $pathToPictures/Pictures-anim/Pictures-anim3h/"$copy.jpg" $pathToPictures/Pictures-anim/Pictures-anim12h/"$thirdDuplicate.jpg"
+			echo "New picture: $copy.jpg has been moved to the next level animation directory as: $thirdDuplicate.jpg!"
+		  fi
+			mv $pathToPictures/Pictures-anim/Pictures-anim3h/"$copy.jpg" $pathToPictures/Pictures-anim/Pictures-anim12h/"$secondDuplicate.jpg"
+			echo "New picture: $copy.jpg has been moved to the next level animation directory as: $secondDuplicate.jpg!"
+		  fi
+			mv $pathToPictures/Pictures-anim/Pictures-anim3h/"$copy.jpg" $pathToPictures/Pictures-anim/Pictures-anim12h/"$firstDuplicate.jpg"
+			echo "New picture: $copy.jpg has been moved to the next level animation directory as: $firstDuplicate.jpg!"
+		  else
+			mv $pathToPictures/Pictures-anim/Pictures-anim3h/"$copy.jpg" $pathToPictures/Pictures-anim/Pictures-anim12h/
+			echo "New picture: $copy.jpg has been moved to the next level animation directory as: $copy.jpg!"
+		  fi
+			let copy=copy+8												# Z tříhodinové do dvanáctihodinové struktury je přesouván každý osmý snímek.
+		  done
+		
+		rm -r $pathToPictures/Pictures-anim/Pictures-anim3h/*.'jpg' 	# Po přesunu všech potřebných snímků do dalšího adresáře jsou veškeré ostatní snímky z tříhodinového adresáře odstraněny.
+		echo "Unnecessary pictures has been removed!" 
+		
+		else
+			echo "There are not enough files! Only $(ls -A "$directory" | wc -l) files available!"
+		fi
+		
+		echo "Waiting $frequency seconds for the next try..."
+		sleep $frequency
+		
+done
+ 

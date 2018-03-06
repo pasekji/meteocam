@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# Databese upload id and image taking frequency
+databaseId=$1 										# Zde si prosím nastavte počáteční id databázové tabulky, do které se chystáte nahrávat odkazy na snímky. 
+frequency=$2 										# Tato proměnná vyjadřuje, po jakém časovém úseku se bude pořizovat nový snímek. 
+# FTP login atributes		
+userName=$3											# Zde si prosím nastavte uživatelské jméno pro přístup k FTP serveru.
+password=$4											# Zde si prosím nastavte heslo pro přístup k uživatelskému účtu na FTP serveru.
+domain=$5											# Zde prosím nastavte název vaší domény např. google.com . 	
+destinationFolder=$6								# Zde prosím určete, do jakého adresáře se na zvoleném FTP serveru budou ukládat nově pořízené snímky. 
+# Local paths
+pathToPictures=$7									# Zde prosím nastavte plnou cestu do adresářové struktury Pictures.
+stamp=$8											# Zde prosím nastavte plnou cestu k obrázku(logu), které se bude umisťovat na snímek.
+currentFolder=$9									# Zde prosím nastavte plnou cestu, která vede do nynějšího umístění MeteoCam scriptů.
+for (( i=$databaseId; i>0; i++ ))					# Nekonečný cyklus, jehož počet průchodů je umněrný číslu ID v databázové tabulce. 
+do
+    echo "Sleeping for $frequency seconds..."
+    sleep $frequency								# Zde cyklus tzv. odpočívá, po vypršení předem určené frekvence se pokračuje dále v syntaxi. 
+    echo "Taking image..."
+    $currentFolder/cam-get 							# Cyklus spouští script na pořízení snímku z kamery. 
+    outputFile=$(date '+%Y%m%d%H%M%S')				# Název pořízeného snímku bude mít formát data a času. 
+    echo "File name: $outputFile"
+    echo "Image stamping with logo..."
+    composite -compose overlay -gravity NorthEast -geometry +10+10 $stamp $pathToPictures/Pictures-unstamped/*'.jpg' $pathToPictures/Pictures-info/$outputFile.jpg 	# V této části se lepí logo na snímek, parametr -compose overlay určuje, že logo bude překrývat vymezenou část snímku, dále parametr -gravity NorthEast určuje, že bude logo nalepeno na severovýchodní část snímku a parametr -geometry +10+10 nakonec určuje počet odsazených bodů(pixelů) od kraje snímku. Dále jsou zde 2 atributy, první je cesta k logu a druhý je cesta ke snímku, na který se bude lepit. Poslední atribut vyjadřuje vástupní soubor.   
+    datetimeStamp=`date`							# Nynější čas je uložen do proměnné datetimeStamp.
+    echo "Datetime stamp: $datetimeStamp"
+    echo "Image stamping with datetime stamp..."
+    convert $pathToPictures/Pictures-info/"$outputFile.jpg" -pointsize 36 -fill white -background '#3017E8' -gravity SouthEast -annotate +0+5 "$datetimeStamp" $pathToPictures/Pictures-info/$outputFile.jpg	# Zde je na snímek zaznamenána časová značka. Parametr -pointsize 36 určuje velikost písma časové značky. Parametry -fill a -background určují barvu písma a pozadí. Parametr -gravity SouthEast určuje, že časová značka bude umístěna v jihovýchodní části snímku a parametr -annotate určuje počet odsazených bodů(pixelů) od kraje snímku. První atributem je cesta ke snímku, druhým atributem je porměnná s časovou značkou a třetím atributem je výstupní soubor. 
+    echo "Taking image into next directory..."
+    cp $pathToPictures/Pictures-info/"$outputFile.jpg" $pathToPictures/Pictures-hist1/		# Snímek je zkopírován do dalšího adresáře.
+    echo "Removing unnecessary images..."
+    rm $pathToPictures/Pictures-unstamped/*'.jpg'	# Nepotřebné snímeky se odstraní.
+    cd $pathToPictures/Pictures-info				# Přesun do adresáře se snímky pro nahrání do sítě. 
+    echo "Transfering $outputFile to the website hosting destination folder: $destinationFolder ..."
+    ncftpput -u $userName -p $password $domain $destinationFolder "$outputFile.jpg" 		# Přihlášení na FTP server a následné nahrání snímku. 
+    echo "$outputFile has been successfully transfered to website hosting!"
+    echo "Transfering $outputFile to Imgur service..."
+    imgur "$outputFile.jpg" "$i"					# Nahrání snímku na službu Imgur.
+    echo "$outputFile has been successfully transfered to Imgur!"
+done

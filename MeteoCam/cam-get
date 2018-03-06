@@ -1,0 +1,13 @@
+#!/bin/bash
+pathToPictures=(/media/pi/73EA-9457/Pictures)		# Zde prosím nastavte plnou cestu do adresářové struktury Pictures.
+DATE=$(date '+%y%m%d_%H-%M-%S') 					# Tato proměnná vyjadřuje nynější datum a čas. 
+FLATTIME=$(date "+%H%M")							# Tato proměnná vyjadřuje nynější čas v hodině a minutách. Je podle ní dále orientováno denní a noční nastavení kamery.  
+
+cd $pathToPictures/Pictures-unstamped	
+if [ $FLATTIME -gt 700 ] && [ $FLATTIME -lt 1830 ]; then	# Tato podmínka testuje, zdali je čas pro denní nastavení kamery. Např. -gt 700 && -lt 1600 znamená, že je více než 7:00 a méně než 16:00. 
+  raspistill -w 1920 -h 1080 -o $DATE.jpg					# Tento příkaz vyjadřuje optimální nastavení kamery pro denní použití. Výchozí rozlišení je Full HD. 
+  echo "New daylight image has been taken!"
+else
+  raspistill -w 1920 -h 1080 -ISO 800 -ss 6000000 -br 80 -co 100 -o $DATE.jpg		# Tento příkaz vyjadřuje optimální nastavení kamery pro noční použití. Výchozí rozlišení je Full HD. 
+  echo "New nightlight image has been taken!"
+fi 

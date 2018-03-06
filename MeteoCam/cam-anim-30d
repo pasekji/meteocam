@@ -1,0 +1,42 @@
+#!/bin/bash
+
+# FTP login attributes and paths 	
+currentFolder=$1												# Zde prosím nastavte plnou cestu, která vede do nynějšího umístění MeteoCam scriptů.
+pathToPictures=$2												# Zde prosím nastavte plnou cestu do adresářové struktury Pictures.
+userName=$3														# Zde si prosím nastavte uživatelské jméno pro přístup k FTP serveru.
+password=$4														# Zde si prosím nastavte heslo pro přístup k uživatelskému účtu na FTP serveru.
+domain=$5														# Zde prosím nastavte název vaší domény např. google.com .
+destinationFolder=$6											# Zde prosím určete, do jakého adresáře se na zvoleném FTP serveru budou ukládat nově pořízené animace. 
+targetDirectory=$7												# Zde prosím nastavte ID cílové složky na Google drive. 
+directory=($pathToPictures/Pictures-anim/Pictures-anim30d/)		# Adresář, ve kterém jsou ukládány snímky pro tvorbu měsíční animace.
+
+# Nekončící cyklus
+for (( ; ; ))
+do
+frequency=18000																	# Počet sekund, po kterých bude zahájen proces o tvorbu animace. 
+
+echo "Current animation level directory is: $directory" 
+
+    if [ $(ls -A "$directory" | wc -l) -ge 60 ]; then							# Podmínka, která se ptá, zdali adresář obsahuje dostatečný počet snímků pro tvorbu animace.
+    
+		DT=$(date '+%Y%m%d%H%M%S')												# Tato proměnná vyjadřuje nynější datum a čas.
+		convert -morph 1 -delay 8 $pathToPictures/Pictures-anim/Pictures-anim30d/{16,960,32,1920,64,3840,96,5760,128,7680,160,9600,192,11520,224,13440,256,15360,288,17280,320,19200,352,21120,384,23040,416,24960,448,26880,480,28800,512,30720,544,32640,576,34560,608,36480,640,38400,672,40320,704,42240,736,44160,768,46080,800,48000,832,49920,864,51840,896,53760,928,55680}.jpg $pathToPictures/Pictures-anim/Pictures-anim-final/Pictures-anim30d/$DT.gif		# Tímto příkazem se již generuje samotná animace. Parametrem -morph zvolíme morfologickou image porccessing metodu, která zajistí méně nedokonalostí oproti ostatním metodám. Parametr -delay určuje, po jaké době má být zobrazen další snímek(ms). Dále je zde definováno rozhraní snímků, které budou jako vstup pro tvorbu. Poslední atribut vyjadřuje již cestu k výstupnímu souboru.
+		echo "New animation: $DT.gif is ready!"
+		cd $pathToPictures/Pictures-anim/Pictures-anim-final/Pictures-anim30d
+		$currentFolder/cam-anim-up-30days "$DT" $pathToPictures $targetDirectory $userName $password $domain $destinationFolder & 					# Spuštění subprocesu pro nahrání animace na webhosting a do Gdrive archivu.
+		
+		# Zde můžete v případě potřeby přesouvat již hotové animace do archivu, pro povolení této funkce prosím odstraňte křížky v následujících 2 řádcích.
+		# mv $pathToPictures/Pictures-anim/Pictures-anim-final/Pictures-anim30d/"$DT.gif" $pathToPictures/Pictures-anim/Pictures-anim-old/Pictures-anim30d/
+		# echo "File has been moved to the archieve!"
+		
+		rm -r $pathToPictures/Pictures-anim/Pictures-anim30d/*.'jpg' 			# Zde je zprostředkováno odstranění veškerých nepotřebných snímků. 
+		echo "Unnecessary pictures has been removed!" 
+		
+    else
+		echo "There are not enough files! Only $(ls -A "$directory" | wc -l) files available!"
+    fi
+    
+echo "Waiting $frequency seconds for the next try..."
+sleep $frequency
+    
+done

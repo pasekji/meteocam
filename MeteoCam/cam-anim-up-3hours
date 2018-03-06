@@ -1,0 +1,14 @@
+#!/bin/bash
+DT="$1"																			# Tato proměnná vyjadřuje název nahrávané animace a je definována prvním argumentem. 
+pathToPictures=$2																# Zde prosím nastavte plnou cestu do adresářové struktury Pictures.
+targetDirectory=$3																# Zde prosím nastavte ID cílové složky na Google drive. 
+# FTP login attributes		
+userName=$4																		# Zde si prosím nastavte uživatelské jméno pro přístup k FTP serveru.
+password=$5																		# Zde si prosím nastavte heslo pro přístup k uživatelskému účtu na FTP serveru.
+domain=$6																		# Zde prosím nastavte název vaší domény např. google.com . 	
+destinationFolder=$7															# Zde prosím určete, do jakého adresáře se na zvoleném FTP serveru budou ukládat nově pořízené animace. 
+cd $pathToPictures/Pictures-anim/Pictures-anim-final/Pictures-anim3h
+ncftpput -u $userName -p $password $domain $destinationFolder "$DT.gif" 															# Upload proces na webhosting server. 
+echo "File $DT.gif has been successfully transfered to website hosting!"
+gdrive-linux-rpi upload --parent $targetDirectory $pathToPictures/Pictures-anim/Pictures-anim-final/Pictures-anim3h/"$DT.gif"		# Upload proces na Google drive. 
+echo "File $DT.gif has been successfully transfered to Google drive!"

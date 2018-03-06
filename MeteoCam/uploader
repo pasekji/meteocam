@@ -1,0 +1,22 @@
+#!/bin/bash
+id=$1								# První argument = id v databázi
+pressure=$2							# Druhý argument = atmosférický tlak
+altitude=$3							# Třetí argument = nadmořská výška
+cTemp=$4							# Čtvrtý argument = teplota v °C 
+fTemp=$5							# Pátý argument = teplota v °F
+humidity=$6							# Šestý argument = vlhkost v ovzduší 
+DT=$(date '+%Y%m%d%H%M%S') 			# Tato proměnná vyjadřuje nynější datum a čas. 
+echo "Uploading time is: $DT "  
+
+# server login
+login="user@server.com"				# Zde vyplňte prosím přihlašovací jeméno a doménu ve fromátu username@doména.cz .  
+protocol=22							# Zde vyplňte ID síťového protokolu. U SSH je výchozí ID 22.
+
+# Následující funkce zajišťuje přístup na server pomocí protokolu SSH. Za parametrem -p v uvozovkách prosím vyplňte své heslo pro přístup na SSH. Po úspěšném přístupu vyvolá příkazy nacházející se v EOF. 
+
+ssh host <<EOF 
+mysql --host=host --user=user --password=password database -e "insert into stats (id, humidity, height, air_pressure, temperature_C, temperature_F) values('$id','$humidity','$altitude','$pressure','$cTemp','$fTemp')"
+EOF
+ 
+# V příkazu mysql si vyplňte přihlašovací údaje do databáze a nakonfigurujte si pole, do kterých se budou data ukládat.
+echo "Values has been successfully saved into the database!" 

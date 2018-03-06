@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# Instalace balíčku ImageMagick
+echo "Installing ImageMagick..."
+sudo apt-get install imagemagick 
+echo "ImageMagick has been successfully instaled!" 
+# Instalace balíčku ncftpput
+echo "Installing ncftpput..."
+sudo apt-get install ncftpput
+echo "Ncftpput has been successfully instaled"
+# Instalace balíčku Imgur API
+echo "Installing Imgur API..."
+sudo cp imgur.sh /bin
+echo "Imgur API has been successfully instaled!"
+# Instalace balíčku Gdrive-linux-rpi
+echo "Installing Gdrive API..."
+sudo ./gdrive-linux-rpi.sh about
+sudo cp gdrive-linux-rpi.sh /bin
+echo "Gdrive API has been successfully instaled!"
+# Update a upgrade
+echo "Updating..."
+sudo apt-get update
+sudo apt-get upgrade	
+echo "Updating proccess has been done!"
+# Povolení rozhraní v raspi-config a následný reboot
+echo "You will be redirected to the raspi-config terminal in 20 seconds.\n There you need to go to the Interfacing options and enable Camera and I2C options there.\n It needs to be done before we will start to use the Camera and other addable modules.\n Your Raspberry will be restarted after that." 
+sleep 20 
+sudo raspi-config
+echo "Setup proccess has been done!\n Your Raspberry will reboot in 10 seconds..."
+sleep 10 
+sudo reboot 
