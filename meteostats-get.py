@@ -14,6 +14,9 @@ idAverage = int(sys.argv[2])
 frequency = int(sys.argv[3])					 
 count = 1						# Tato proměnná vyjadřuje počet průchodů. Jeden za 10 minut > 144 denně.
 
+# Získání I2C sběrnice
+bus = smbus.SMBus(1)
+
 # Nekončící cyklus, podmínka True je splněna vždy.
 while True:
 # Podmínka pro ověření počtu průchodů. 
